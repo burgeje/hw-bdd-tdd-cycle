@@ -1,25 +1,57 @@
-BDD, TDD Cycle
+Acceptance-Unit Test Cycle
 ===
 
-In this assignment you will use a combination of Behavior-Driven Design (BDD) and Test-Driven Development (TDD) with the Cucumber and RSpec tools to add a "find movies with same director" feature to RottenPotatoes, and deploy the resulting app on Heroku.
+In this assignment you will use a combination of Acceptance and Units tests with the Cucumber and RSpec tools to add a "find movies with same director" feature to RottenPotatoes.
 
-To get the initial RottenPotatoes code please fork this bdd-tdd-cycle repo to your GitHub account with the Fork button on GitHub. Then copy the clone URL from your repo, and execute the following command in the top level of your Cloud9 workspace:
+**NOTE: Do not clone this repo to your workspace. Fork it first, then clone your fork.**
 
-`git clone <your clone URL goes here>`
+Learning Goals
+--------------
+After you complete this assignment, you should be able to:
+* Create and run simple Cucumber scenarios to test a new feature
+* Use RSpec to create unit tests that drive the creation of app code that lets the Cucumber scenario pass
+* Understand where to modify a Rails app to implement the various parts of a new feature, since a new feature often touches the database schema, model(s), view(s), and controller(s)
 
-Next, follow the instructions below to get setup:
+
+Introduction and Setup
 ----
-1) Change into the rottenpotatoes directory: cd hw-bdd-tdd-cycle/rottenpotatoes  
-2) Run bundle install --without production to make sure all gems are properly installed.  
-3) Run bundle exec rake db:migrate to apply database migrations.  
-4) Finally, run these commands to set up the Cucumber directories (under features/) and RSpec directories (under spec/) if they don't already exist, allowing overwrite of any existing files:
+To get the initial RottenPotatoes code please clone this repo to your local machine or C9 workspace, and execute the following command in your top level projects directory, or the root of your C9 workspace:
+
+```sh
+$ git clone https://github.com/saasbook/hw-acceptance-unit-test-cycle
+```
+
+Once you have the clone of the repo:
+
+1) Change into the rottenpotatoes directory: `cd hw-acceptance-unit-test-cycle/rottenpotatoes`  
+2) Run `bundle install --without production` to make sure all gems are properly installed.    
+3) Run `bundle exec rake db:migrate` and `bundle exec rake db:migrate RAILS_ENV=test` to apply database migrations to both development and test databases.    
+4) Run these commands to set up the Cucumber directories (under features/) and RSpec directories (under spec/) if they don't already exist, allowing overwrite of any existing files:
 
 ```shell
 rails generate cucumber:install capybara
 rails generate cucumber_rails_training_wheels:install
 rails generate rspec:install
 ```
-5) You can double-check if everything was installed by running the tasks `rspec` and `cucumber`.  
+
+5) Create a new file called `rspec.rb` in features/support with the following contents:
+
+```rb
+require 'rspec/core'
+
+RSpec.configure do |config|
+  config.mock_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+end
+```
+
+This prevents RSpec from issuing DEPRECATION warnings when it encounters deprecated syntax in `features/step_definitions/web_steps`.
+
+6) You can double-check if everything was installed by running the tasks `rspec` and `cucumber`.  
 
 Since presumably you have no features or specs yet, both tasks should execute correctly reporting that there are zero tests to run. Depending on your version of rspec, it may also display a message stating that it was not able to find any _spec.rb files.
 
@@ -31,10 +63,10 @@ HINT: use the [`add_column` method of `ActiveRecord::Migration`](http://apidock.
 
 Remember to add `:director` to the list of movie attributes in the `def movie_params` method in `movies_controller.rb`.
 
-Remember that once the migration is applied, you also have to do `rake db:test:prepare` 
+Remember that once the migration is applied, you also have to do `rake db:migrate RAILS_ENV=test` 
 to load the new post-migration schema into the test database!
 
-**Part 2: use BDD+TDD to get new scenarios passing**
+**Part 2: use Acceptance and Unit tests to get new scenarios passing**
 
 We've provided [three Cucumber scenarios](http://pastebin.com/L6FYWyV7) to 
 drive creation of the happy path of Search for Movies by Director.
@@ -78,12 +110,13 @@ We want you to report your code coverage as well.
 
 Add `gem 'simplecov', :require => false` to the test group of your gemfile, then run `bundle install --without production`.
 
-Next, add the following lines to the TOP of spec/rails_helper.rb and features/support/env.rb:
+Next, add the following code **BEFORE ANYTHING ELSE ON LINE ONE** of spec/rails_helper.rb and features/support/env.rb:
 
-```ruby
+```rb
 require 'simplecov'
 SimpleCov.start 'rails'
 ```
+**WARNING: THE ABOVE CODE MUST COME BEFORE ALL OTHER CODE** in spec/rails_helper.rb and features/support/env.rb or **YOUR COVERAGE REPORTS WILL BE INACCURATE**
 
 Now when you run `rspec` or `cucumber`, SimpleCov will generate a report in a directory named
 `coverage/`. Since both RSpec and Cucumber are so widely used, SimpleCov
@@ -92,11 +125,11 @@ not overwrite the coverage results from SimpleCov and vice versa.
 
 To see the results in Cloud9, open /coverage/index.html. You will see the code, but click the Run button at the top. This will spin up a web server with a link in the console you can click to see your coverage report.
 
-Improve your test coverage by adding unit tests for untested or undertested code. Specifically, you can write unit tests for the `update`, `destroy`, and `create` controller methods.
+Improve your test coverage by adding unit tests for untested or undertested code. Specifically, you can write unit tests for the `index`, `update`, `destroy`, and `create` controller methods.
 
 **Submission:**
 
-Here are the instructions for submitting HW4. Submit a zip file with various directories of your app:
+Here are the instructions for submitting your assignment for grading. Submit a zip file containing the following files and directories of your app:
 
 * app/
 * config/
@@ -104,20 +137,23 @@ Here are the instructions for submitting HW4. Submit a zip file with various dir
 * features/
 * spec/
 * Gemfile
-Gemfile.lock
+* Gemfile.lock
 
-If you modified any other files, please include them too. If you are on a *nix based system, navigate to the root directory for HW4 and run
+If you modified any other files, please include them too. If you are on a *nix based system, navigate to the root directory for this assignment and run
 
-```zip -r hw4.zip hw4/app/ hw4/config/ hw4/db/migrate hw4/features/ hw4/spec/ hw4/Gemfile hw4/Gemfile.lock```
+```sh
+$ cd ..
+$ zip -r hw5.zip rottenpotatoes/app/ rottenpotatoes/config/ rottenpotatoes/db/migrate rottenpotatoes/features/ rottenpotatoes/spec/ rottenpotatoes/Gemfile rottenpotatoes/Gemfile.lock
+```
 
-This will create the file hw4.zip, which you will submit.
+This will create the file hw5.zip, which you will submit.
 
-IMPORTANT NOTE: Your submission must be zipped inside a hw folder so that it looks like so:
+IMPORTANT NOTE: Your submission must be zipped inside a rottenpotatoes/ folder so that it looks like so:
 
 ```
 $ tree
 .
-└── hw4
+└── rottenpotatoes
     ├── Gemfile
     ├── Gemfile.lock
     ├── app
